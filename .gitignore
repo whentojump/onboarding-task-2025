@@ -1,0 +1,29 @@
+# Build results at different stages
+a.out
+*.bin
+*.exe
+*.elf
+*.o
+*.s
+*.bc
+*.ll
+*.i
+# GDB
+.gdbinit
+.gdb_history
+# Coverage
+*.covmapping
+*.proftext
+*.profdata
+*.profraw
+*.gcov
+*.gcno
+*.gcda
+# clangd
+compile_commands.json
+**/.cache/clangd
+# Object coverage
+*.disassembly.txt
+*.trace.txt
+*.trace.bin
+*.trace.bin2
