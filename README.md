@@ -1,4 +1,4 @@
-> [!ERROR]
+> [!CAUTION]
 >
 > For students working on their onboarding task: this document is outdated.
 > You are safe to go when this message is gone. If you've reached this step
