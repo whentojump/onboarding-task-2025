@@ -1,13 +1,8 @@
-> [!CAUTION]
->
-> For students working on their onboarding task: this document is outdated.
-> You are safe to go when this message is gone. If you've reached this step
-> and are still seeing this message, please email Wentao. Sorry for the
-> inconvenience!
-
 Tested with a clean Debian bookworm 64-bit VM.
 
-One notable requirement is Python needs to be relatively new so that it
+In principle, the distro, version and using a physical or virtual machine should
+not make too much difference.
+One notable requirement though is Python needs to be relatively new so that it
 supports `match` statement, composite type hints etc. Python 3.10.12 is known
 to work.
 
@@ -58,7 +53,7 @@ Build QEMU and TCG plugin
 mkdir -p $Q_BUILD_DIR
 
 cd /tmp/
-git clone git@gitlab.com:whentojump/qemu-play.git --branch tcg-plugin-v6.2.0
+git clone https://gitlab.com/whentojump/qemu-play.git --branch tcg-plugin-v6.2.0
 mv qemu-play $Q_SRC
 cd $Q_SRC
 
@@ -79,7 +74,7 @@ popd
 Run tests
 
 ```shell
-git clone git@github.com:whentojump/onboarding-task-2025.git $SCRIPT_REPO
+git clone https://github.com/whentojump/onboarding-task-2025.git $SCRIPT_REPO
 
 # Make sure the environment variables are correctly set, qemu binary and plugin can be found
 ls $Q_PREFIX/bin/qemu-x86_64
@@ -90,20 +85,6 @@ source $PYTHON_VENV/bin/activate
 pip install colorama
 
 cd $SCRIPT_REPO
-./tests/test-all.sh
-```
-
-**(Experimental)** binary-encoded trace
-
-```shell
-export TRACE_ENCODING=binary
-export BRANCH_COVERAGE=0
-export DEBUG=1
-
-./tests/test-all.sh
-
-export TRACE_ENCODING=binary2
-
 ./tests/test-all.sh
 ```
 
@@ -142,51 +123,9 @@ Prepare the initial RAM disk
 curl -LSs https://github.com/ClangBuiltLinux/boot-utils/releases/download/20230707-182910/x86_64-rootfs.cpio.zst | zstd -d > rootfs.cpio
 ```
 
-(Baseline) Boot Linux and do *not* trace
-
-```shell
-/usr/bin/time -v $Q_PREFIX/bin/qemu-system-x86_64 \
-"${Q_SYSTEM_FLAGS[@]}"
-```
-
-> [!NOTE]
->
-> On a CloudLab c6420: peak memory 479MB; run time 0:09.61
-
 Boot Linux and collect trace
 
-> [!WARNING]
->
-> Memory-intensive. Typically ~50G.
-
 ```shell
-/usr/bin/time -v $Q_PREFIX/bin/qemu-system-x86_64 \
-"${Q_SYSTEM_FLAGS[@]}" \
--d plugin \
--plugin $Q_PLUGIN,kernel=on,addr_lo="0xffffffff81000000",addr_hi="0xffffffff83500000",log_mode=2,buffer_dump_file="$KERNEL_DIR/vmlinux.trace.txt"
-
-du -sh $KERNEL_DIR/vmlinux.trace.txt
-```
-
-> [!NOTE]
->
-> On a CloudLab c6420: peak memory 51.68GB; run time 3:32.01; trace size 49G
-
-**(Experimental)** binary-encoded trace
-
-Option differences:
-
-- `log_mode`: `LOG_MODE_BUFFER_IN_MEMORY` -> `LOG_MODE_BUFFER_IN_MEMORY | LOG_MODE_BINARY`
-- Output filename: extension `.txt` -> `.bin`
-
-```shell
-/usr/bin/time -v $Q_PREFIX/bin/qemu-system-x86_64 \
-"${Q_SYSTEM_FLAGS[@]}" \
--d plugin \
--plugin $Q_PLUGIN,kernel=on,addr_lo="0xffffffff81000000",addr_hi="0xffffffff83500000",log_mode=6,buffer_dump_file="$KERNEL_DIR/vmlinux.trace.bin"
-
-du -sh $KERNEL_DIR/vmlinux.trace.bin
-
 /usr/bin/time -v $Q_PREFIX/bin/qemu-system-x86_64 \
 "${Q_SYSTEM_FLAGS[@]}" \
 -d plugin \
@@ -195,31 +134,17 @@ du -sh $KERNEL_DIR/vmlinux.trace.bin
 du -sh $KERNEL_DIR/vmlinux.trace.bin2
 ```
 
-> [!NOTE]
->
-> On a CloudLab c6420:
->
-> - Binary encoding scheme 1: peak memory 7.42GB; run time 0:34.84; trace size 6.6G.
-> - Binary encoding scheme 2: peak memory 3.11GB; run time 0:27.25; trace size 2.5G.
->
-> Compared to text-based trace: the first and last TB are exactly the same; but
-> the number of TBs differs, presumably due to kernel nondeterminism.
-
-Post-process trace (WIP)
+Build the post processing program
 
 ```shell
-n=1000000; < $KERNEL_DIR/vmlinux.trace.txt head -n $n > $KERNEL_DIR/vmlinux-$n.trace.txt
+g++ $SCRIPT_REPO/kernel-postprocess.cpp -o $SCRIPT_REPO/kernel-postprocess
+```
 
-min_address="ffffffff81000000"
-max_address=`tail -n1 $KERNEL_DIR/vmlinux.disassembly.txt | cut -d : -f 1`
+Post-process and generate object coverage report
 
-/usr/bin/time -v \
-$SCRIPT_REPO/objcov-kernel.py \
---min-address=$min_address \
---max-address=$max_address \
---output-filename=$KERNEL_DIR/vmlinux-$n.report.txt \
-$KERNEL_DIR/vmlinux-$n.trace.txt \
-$KERNEL_DIR/vmlinux.disassembly.txt |& tee $KERNEL_DIR/log-$n.txt
-
-less $KERNEL_DIR/vmlinux-$n.report.txt
+```shell
+/usr/bin/time -v $SCRIPT_REPO/kernel-postprocess \
+$KERNEL_DIR/vmlinux.trace.bin2 \
+$KERNEL_DIR/vmlinux.disassembly.txt \
+$KERNEL_DIR/vmlinux.report.txt
 ```
