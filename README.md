@@ -45,7 +45,7 @@ export Q_SYSTEM_FLAGS=(
     -initrd $KERNEL_DIR/rootfs.cpio
     -cpu max
     -m 8G
-    -smp 1 `# FIXME`
+    -smp 1
     -serial mon:stdio
 )
 ```
@@ -61,7 +61,7 @@ mv qemu-play $Q_SRC
 cd $Q_SRC
 
 ./configure --enable-plugins \
---enable-virtfs `# For 9P` \
+--enable-virtfs \
 --disable-capstone \
 --disable-werror \
 --target-list="x86_64-linux-user x86_64-softmmu" \
