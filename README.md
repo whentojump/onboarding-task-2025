@@ -1,6 +1,6 @@
 # Subtask: measure object coverage of Linux kernel
 
-The following steps have been tested with (1) a clean Debian bookworm 64-bit VM
+The following steps have been tested with (1) a clean Debian bookworm VM
 (2) a clean CloudLab c6320 instance installed with Ubuntu 22.04.
 
 In principle, the distro, its version, using a physical or virtual machine
@@ -9,7 +9,7 @@ One notable requirement though is Python needs to be relatively new so that it
 supports `match` statement, composite type hints etc. Python 3.10.12 is known
 to work.
 
-## 1. Prepare QEMU and test in user space
+## 1. Prepare QEMU and test it with user-space programs
 
 Install dependencies
 
@@ -91,7 +91,7 @@ cd $SCRIPT_REPO
 ./tests/test-all.sh
 ```
 
-## 2. Measure Linux kernel
+## 2. Measure the Linux kernel
 
 Install kernel-specific dependencies:
 
