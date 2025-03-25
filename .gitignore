@@ -27,3 +27,4 @@ compile_commands.json
 *.trace.txt
 *.trace.bin
 *.trace.bin2
+kernel-postprocess
