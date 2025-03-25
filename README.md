@@ -1,7 +1,7 @@
 # Subtask: measure object coverage of Linux kernel
 
 The following steps have been tested with (1) a clean Debian bookworm 64-bit VM
-(2) a clean CloudLab c6320 instance.
+(2) a clean CloudLab c6320 instance installed with Ubuntu 22.04.
 
 In principle, the distro, its version, using a physical or virtual machine
 should not make too much difference.
