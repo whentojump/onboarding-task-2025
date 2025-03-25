@@ -1,12 +1,15 @@
-Tested with a clean Debian bookworm 64-bit VM.
+# Subtask: measure object coverage of Linux kernel
 
-In principle, the distro, version and using a physical or virtual machine should
-not make too much difference.
+The following steps have been tested with (1) a clean Debian bookworm 64-bit VM
+(2) a clean CloudLab c6320 instance.
+
+In principle, the distro, its version, using a physical or virtual machine
+should not make too much difference.
 One notable requirement though is Python needs to be relatively new so that it
 supports `match` statement, composite type hints etc. Python 3.10.12 is known
 to work.
 
-## User space
+## 1. Prepare QEMU and test in user space
 
 Install dependencies
 
@@ -88,7 +91,7 @@ cd $SCRIPT_REPO
 ./tests/test-all.sh
 ```
 
-## Kernel
+## 2. Measure Linux kernel
 
 Install kernel-specific dependencies:
 
@@ -114,7 +117,7 @@ make olddefconfig
 make -j$(nproc)
 
 objdump -d $KERNEL_DIR/vmlinux > $KERNEL_DIR/vmlinux.disassembly.txt
-du -sh $KERNEL_DIR/vmlinux.disassembly.txt # ~430M
+du -sh $KERNEL_DIR/vmlinux.disassembly.txt
 ```
 
 Prepare the initial RAM disk
@@ -147,4 +150,10 @@ Post-process and generate object coverage report
 $KERNEL_DIR/vmlinux.trace.bin2 \
 $KERNEL_DIR/vmlinux.disassembly.txt \
 $KERNEL_DIR/vmlinux.report.txt
+```
+
+View the report
+
+```shell
+less $KERNEL_DIR/vmlinux.report.txt
 ```
